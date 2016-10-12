@@ -3,7 +3,7 @@
  * @Date:   2016-10-12T15:43:47+11:00
  * @Email:  root@guiguan.net
  * @Last modified by:   guiguan
- * @Last modified time: 2016-10-13T01:59:49+11:00
+ * @Last modified time: 2016-10-13T05:28:20+11:00
  */
 
 import _ from 'lodash';
@@ -15,10 +15,10 @@ const TAX_RATES_VALID_START_DATE = moment('7/2012', INPUT_DATE_FORMAT);
 const TAX_RATES_VALID_END_DATE = moment('6/2013', INPUT_DATE_FORMAT);
 const MONTHS_PER_YEAR = 12;
 
-const nameRegex = /^[a-zA-Z]+$/;
-
+// for internal cache and lazy init purpose only
 const inputParamsRegexes = {};
 
+const nameRegex = /^[a-zA-Z]+$/;
 const nameParser = (namePart, v) => {
   if (!inputParamsRegexes[namePart]) {
     inputParamsRegexes[namePart] = nameRegex;
@@ -60,13 +60,13 @@ const inputParamParsers = {
   superRate: {
     parser(v) {
       if (!inputParamsRegexes.superRate) {
-        inputParamsRegexes.superRate = /^(\d+)%$/;
+        inputParamsRegexes.superRate = /^(\d+(?:\.\d+)?)%$/;
       }
       const m = inputParamsRegexes
         .superRate
         .exec(v);
       if (m && m[1]) {
-        const superRate = Number.parseInt(m[1], 10);
+        const superRate = Number.parseFloat(m[1], 10);
         if (superRate >= 0 && superRate <= 50) {
           return superRate * 0.01;
         }
@@ -145,11 +145,17 @@ export const outputParams = _.reduce(outputParamFormatters, (r, v, k) => {
 
 export function genPayslip(inputs) {
   return Promise.resolve(inputs)
-  // validate and parse inputs
-    .then(inputs => _.reduce(inputParamParsers, (r, v, k) => {
-    r[k] = v.parser(inputs[k], inputs);
+  // validate and parse inputs. Iterate over inputParams instead of
+  // inputParamParsers, because the former has defiend order
+    .then(inputs => _.reduce(inputParams, (r, k) => {
+    if (inputs[k] === undefined) {
+      throw new Error(`Input param ${k} is missing`);
+    }
+    r[k] = inputParamParsers[k].parser(inputs[k], inputs);
     return r;
-  }, {})).then(({
+  }, {}))
+  // carry out calculation and generate outputs
+    .then(({
     firstName,
     lastName,
     annualSalary,
@@ -194,8 +200,8 @@ export function genPayslip(inputs) {
     outputs.incomeTax = Math.round(((taxBase + ((annualSalary - taxRateBase) * taxRate)) / MONTHS_PER_YEAR) * numOfMonths);
     outputs.netIncome = outputs.grossIncome - outputs.incomeTax;
     outputs.super = Math.round(outputs.grossIncome * superRate);
-    return _.reduce(outputParamFormatters, (r, v, k) => {
-      r[k] = v.formatter(outputs[k]);
+    return _.reduce(outputParams, (r, k) => {
+      r[k] = outputParamFormatters[k].formatter(outputs[k]);
       return r;
     }, outputs);
   });

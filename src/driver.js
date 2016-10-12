@@ -3,7 +3,7 @@
  * @Date:   2016-10-12T15:48:21+11:00
  * @Email:  root@guiguan.net
  * @Last modified by:   guiguan
- * @Last modified time: 2016-10-12T23:06:51+11:00
+ * @Last modified time: 2016-10-13T03:54:45+11:00
  */
 
 import fs from 'fs';
@@ -38,7 +38,7 @@ try {
       .on('end', () => {
         console.log(`\nDone. Result is in ${outputCsvPath}`);
       })
-      .pipe(csv.createWriteStream({headers: outputParams}))
+      .pipe(csv.createWriteStream({headers: outputParams, includeEndRowDelimiter: true}))
       .pipe(fs.createWriteStream(outputCsvPath, {encoding: 'utf8'}));
   } else {
     console.log(USAGE_MSG);

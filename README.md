@@ -3,7 +3,7 @@
 @Date:   2016-10-12T15:05:15+11:00
 @Email:  root@guiguan.net
 @Last modified by:   guiguan
-@Last modified time: 2016-10-13T01:40:18+11:00
+@Last modified time: 2016-10-13T06:18:34+11:00
 -->
 
 # Installation & Usage
@@ -11,9 +11,22 @@
 1. make sure the latest node and npm version is installed. You can use `nvm install node` to install them.
 2. `npm install`
 3. `npm run compile`
-4. `npm start PATH_TO_INPUT_CSV_FILE PATH_TO_OUTPUT_CSV_FILE` (you can use `sample_input.csv` in `test` directory)
+4. `npm start PATH_TO_INPUT_CSV_FILE PATH_TO_OUTPUT_CSV_FILE` (you can use `sample_input.csv` in `test` directory) or simply run `npm run start-dev` which will use `test/sample_input.csv` as inputs and output to `test/output.csv`
 
-# Running Test Cases
+## Input CSV File Format
+
+```
+firstName,lastName,annualSalary,superRate,payPeriod
+Blaine,Matis,10000000,8.88%,1/2012-12/2012
+```
+## Output CSV File Format
+
+```
+name,payPeriod,grossIncome,incomeTax,netIncome,super
+Blaine Matis,01/01/2012-31/12/2012,10000000,4473547,5526453,888000
+```
+
+# Run All Test Cases
 
 `npm test`
 
@@ -30,3 +43,4 @@
 
 * node v6.7.0
 * npm v3.10.3
+* macOS v10.12
